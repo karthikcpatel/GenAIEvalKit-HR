@@ -1,0 +1,17 @@
+# Core
+python-dotenv>=1.0.0
+requests>=2.31.0
+
+# Data handling
+pandas>=2.0.0
+
+# ML / NLP
+scikit-learn>=1.3.0
+sentence-transformers>=2.2.2
+
+# Testing
+pytest>=7.4.0
+allure-pytest>=2.13.0
+
+# Optional (performance / utilities)
+numpy>=1.24.0

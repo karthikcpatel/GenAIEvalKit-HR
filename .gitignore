@@ -1,0 +1,16 @@
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.log
+
+# Reports
+reports/
+allure-results/
+allure-report/
+
+# OS
+.DS_Store
+Thumbs.db
