@@ -1,17 +1,62 @@
-# Core
-python-dotenv>=1.0.0
-requests>=2.31.0
+# ==================================================================
+# requirements.txt
+# GenAIEvalKit-HR — HR Chatbot Test Automation Framework
+#
+# Requires Python >= 3.9
+#
+# Install all dependencies:
+#   pip install -r requirements.txt
+#
+# Note: The Allure CLI (Java-based) must be installed separately
+# to render interactive reports with `allure serve`.
+# Installation guide: https://allurereport.org/docs/install/
+# ==================================================================
+
+
+# ------------------------------------------------------------------
+# Runtime dependencies
+# Used by the RAG pipeline, LLM client, retriever, and evaluators.
+# ------------------------------------------------------------------
+
+# Anthropic Claude SDK — replaces requests/openai
+anthropic~=0.40.0
+
+# Environment variable management (.env file support)
+python-dotenv~=1.0.0
 
 # Data handling
-pandas>=2.0.0
+pandas~=2.0.0
+numpy~=1.24.0
 
-# ML / NLP
-scikit-learn>=1.3.0
-sentence-transformers>=2.2.2
+# Semantic similarity — sentence embeddings
+sentence-transformers~=2.2.2
 
-# Testing
-pytest>=7.4.0
-allure-pytest>=2.13.0
+# PyTorch — required by sentence-transformers
+# Pinned to avoid silent breakage from major version upgrades
+torch~=2.0.0
 
-# Optional (performance / utilities)
-numpy>=1.24.0
+# Token-level metrics — stopword list
+scikit-learn~=1.3.0
+
+
+# ------------------------------------------------------------------
+# Testing dependencies
+# Used only during test execution — not required in production.
+# ------------------------------------------------------------------
+
+# Core test runner
+pytest~=7.4.0
+
+# Parallel test execution (leverages thread-safety in similarity.py)
+pytest-xdist~=3.3.0
+
+# Allure reporting plugin — generates raw result files for Allure CLI
+# See install note at top of file for the separate Allure CLI setup
+allure-pytest~=2.13.0
+
+# RAGAS evaluation framework — LLM-as-judge metrics
+# (faithfulness, answer_relevancy, context_precision, context_recall)
+ragas~=0.1.0
+
+# HuggingFace datasets — required by RAGAS for dataset construction
+datasets~=2.14.0
