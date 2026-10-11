@@ -7,7 +7,7 @@ import pandas as pd
 import pytest
 import allure
 
-from rag.rag_pipeline import rag_answer, FALLBACK_MESSAGE
+from rag.rag_pipeline import rag_answer, is_fallback
 from evaluator.similarity import similarity_score
 
 # ------------------------------------------------------------------ #
@@ -29,13 +29,10 @@ BASELINE_FILE = os.environ.get(
     "REGRESSION_BASELINE_PATH", "regression_baseline.json"
 )
 
-# Phrases that indicate a generic fallback / deferral response.
-# These are skipped in regression scoring — a retrieval gap should
-# not be counted as a model regression.
-FALLBACK_INDICATORS = [
-    "please check the hr portal",
-    "i don't have enough information"
-]
+# Fallback / deferral responses are skipped in regression scoring — a
+# retrieval gap should not be counted as a model regression.
+# Detection is delegated to rag_pipeline.is_fallback so it stays in
+# sync with the canonical FALLBACK_MESSAGE.
 
 
 # ------------------------------------------------------------------ #
@@ -73,12 +70,6 @@ def save_baseline(baseline):
     """
     with open(BASELINE_FILE, "w", encoding="utf-8") as f:
         json.dump(baseline, f, indent=2)
-
-
-def _is_fallback(response):
-    """Return True if the response is a generic HR portal deferral."""
-    response_lower = response.lower()
-    return any(phrase in response_lower for phrase in FALLBACK_INDICATORS)
 
 
 # ------------------------------------------------------------------ #
@@ -143,7 +134,7 @@ def test_regression_hr_dataset():
         # ---------------------------------------------------------- #
         # Fallback detection — skip scoring, log separately          #
         # ---------------------------------------------------------- #
-        if _is_fallback(response):
+        if is_fallback(response):
             fallback_prompts.append({
                 "prompt":   prompt,
                 "category": category
@@ -175,6 +166,7 @@ def test_regression_hr_dataset():
         drift_fail        = (
             drift_threshold is not None and score < drift_threshold
         )
+        baseline_display  = f"{baseline_score:.3f}" if baseline_score else "N/A"
 
         # ---------------------------------------------------------- #
         # Allure reporting                                            #
@@ -191,7 +183,7 @@ def test_regression_hr_dataset():
                     f"Score     : {score:.3f}\n"
                     f"Threshold : {threshold}\n"
                     f"Status    : {'PASS ✓' if score >= threshold else 'FAIL ✗'}\n"
-                    f"Baseline  : {baseline_score:.3f if baseline_score else 'N/A'}\n"
+                    f"Baseline  : {baseline_display}\n"
                     f"Drift     : {'FAIL ✗' if drift_fail else 'OK ✓'}"
                 ),
                 name="Similarity Score"

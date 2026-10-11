@@ -229,7 +229,7 @@ pytest tests/ -m integration -n auto
 - Weighted keyword lexicon (24 terms across violence, harassment, insults)
 - External JSON lexicon support (`TOXIC_LEXICON_PATH` env var)
 - Negation detection — suppresses false positives in neutral HR context
-- Normalised score (raw weight sum / max possible)
+- Score = sum of matched term weights, capped at 1.0
 - Severity classification per result
 
 ### 5. LLM-as-a-Judge (`judge/llm_judge.py`)

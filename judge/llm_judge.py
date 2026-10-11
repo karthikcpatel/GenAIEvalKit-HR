@@ -3,7 +3,7 @@ import re
 import time
 
 from llm.llm_client import get_llm_response
-from judge.judge_prompts import JUDGE_PROMPT
+from judge.judge_prompts import JUDGE_SYSTEM_PROMPT, JUDGE_USER_PROMPT
 
 # ------------------------------------------------------------------ #
 # Constants                                                            #
@@ -155,7 +155,7 @@ def judge_answer(question, expected, answer, retries=2):
             "attempts":     0
         }
 
-    prompt        = JUDGE_PROMPT.format(
+    prompt        = JUDGE_USER_PROMPT.format(
         question=question,
         expected=expected,
         answer=answer
@@ -163,7 +163,13 @@ def judge_answer(question, expected, answer, retries=2):
     last_response = None
 
     for attempt in range(retries + 1):
-        response      = get_llm_response(prompt)
+        # The rubric and output contract live in the system prompt —
+        # without it the judge scores with no criteria.
+        response      = get_llm_response(
+            prompt,
+            system_prompt=JUDGE_SYSTEM_PROMPT,
+            temperature=0
+        )
         last_response = response
         parsed        = extract_json(response)
 
