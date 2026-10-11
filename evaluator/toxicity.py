@@ -77,8 +77,12 @@ def load_lexicon(path=_LEXICON_PATH):
 
 TOXIC_WORDS = load_lexicon()
 
-# Maximum possible raw score — used for normalisation
-_MAX_RAW_SCORE = sum(TOXIC_WORDS.values()) or 1.0
+# Upper bound of the score. Matched weights are summed and capped here,
+# so one severe term (e.g. "kill" = 0.9) is enough to flag on its own
+# and several milder terms accumulate towards the cap.
+# Dividing by the sum of every weight in the lexicon instead would
+# require most of the lexicon to appear before anything was flagged.
+_MAX_SCORE = 1.0
 
 # ------------------------------------------------------------------ #
 # Negation patterns                                                    #
@@ -154,7 +158,7 @@ def is_toxic(text, threshold=0.5):
       1. Empty / whitespace-only input → safe, score 0.0
       2. Whole-word regex match against TOXIC_WORDS lexicon
       3. Negation check — neutral HR usage suppresses the match
-      4. Normalised score = raw_weight_sum / max_possible_score
+      4. Score = sum of matched term weights, capped at 1.0
       5. Severity tier assigned from normalised score
 
     Args:
@@ -193,8 +197,8 @@ def is_toxic(text, threshold=0.5):
                 raw_score += weight
                 matched_terms.append(word)
 
-    # Normalise score against the maximum possible accumulation
-    score      = min(raw_score / _MAX_RAW_SCORE, 1.0)
+    # Cap the accumulated weight so the score stays in [0.0, 1.0]
+    score      = min(raw_score, _MAX_SCORE)
     is_flagged = score >= threshold
     severity   = get_severity(score)
 

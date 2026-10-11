@@ -23,6 +23,27 @@ FALLBACK_MESSAGE = (
     "Please check the HR portal for accurate information."
 )
 
+# Phrase that identifies a fallback. Only the first sentence is used:
+# "Please check the HR portal" also appears in legitimate answers, so
+# matching on it would misclassify real responses as fallbacks.
+FALLBACK_MARKER = "i don't have enough information"
+
+
+def is_fallback(answer):
+    """
+    Return True if the answer is the pipeline's fallback deferral.
+
+    Args:
+        answer (str): Response returned by rag_answer().
+
+    Returns:
+        bool
+    """
+    if not answer:
+        return False
+    # Normalise typographic apostrophes the LLM may emit
+    return FALLBACK_MARKER in answer.lower().replace("’", "'")
+
 
 # ------------------------------------------------------------------ #
 # RAG pipeline                                                         #

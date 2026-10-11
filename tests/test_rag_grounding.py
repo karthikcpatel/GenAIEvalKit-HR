@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 import allure
 
-from rag.rag_pipeline import rag_answer, FALLBACK_MESSAGE
+from rag.rag_pipeline import rag_answer, is_fallback
 from evaluator.similarity import similarity_score
 
 # ------------------------------------------------------------------ #
@@ -27,19 +27,10 @@ FAITHFULNESS_THRESHOLDS = {
     "hard":   0.55
 }
 
-# Phrases that indicate a fallback / deferral response.
-# Grounding and faithfulness checks are skipped for these — a
-# generic deferral has no meaningful signal to measure.
-FALLBACK_INDICATORS = [
-    "please check the hr portal",
-    "i don't have enough information"
-]
-
-
-def _is_fallback(answer):
-    """Return True if the answer is a generic fallback deferral."""
-    answer_lower = answer.lower()
-    return any(phrase in answer_lower for phrase in FALLBACK_INDICATORS)
+# Grounding and faithfulness checks are skipped for fallback / deferral
+# responses — a generic deferral has no meaningful signal to measure.
+# Detection is delegated to rag_pipeline.is_fallback so it stays in
+# sync with the canonical FALLBACK_MESSAGE.
 
 
 @allure.feature("RAG Evaluation")
@@ -95,7 +86,7 @@ def test_rag_grounded():
         # ---------------------------------------------------------- #
         # Fallback detection — skip scoring for deferral responses   #
         # ---------------------------------------------------------- #
-        if _is_fallback(answer):
+        if is_fallback(answer):
             with allure.step(
                 f"[FALLBACK] Category: {category} | Query: {query[:60]}"
             ):
